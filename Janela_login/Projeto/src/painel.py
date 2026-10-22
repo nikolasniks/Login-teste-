@@ -44,7 +44,8 @@ def cartao_indicador(titulo, valor, variacao, icone, cor):
             ft.Container(ft.Icon(icone, color=cor, size=20), padding=8, border_radius=12,
                          bgcolor=ft.Colors.with_opacity(0.12, cor)),
         ]),
-        ft.Text(valor, size=26, weight=ft.FontWeight.BOLD),
+        ft.Text(valor, size=26, weight=ft.FontWeight.BOLD, no_wrap=True,
+                overflow=ft.TextOverflow.ELLIPSIS),
         ft.Row(spacing=4, controls=[
             ft.Icon(ft.Icons.TRENDING_UP if positivo else ft.Icons.TRENDING_DOWN, size=16,
                     color=ft.Colors.GREEN if positivo else ft.Colors.RED),
@@ -157,17 +158,30 @@ def pagina_clientes(painel):
     busca = campo(None, ft.Icons.SEARCH, hint_text='Buscar por nome, e-mail ou cidade',
                   expand=True)
     contador = ft.Text(size=13, color=ft.Colors.ON_SURFACE_VARIANT)
-    # No layout compacto, Cidade e Total comprado saem para a tabela caber na tela
+    # No layout compacto, Cidade e Total comprado saem para a lista caber na tela
     completo = not painel.compacto
-    tabela = ft.DataTable(
-        expand=True, heading_row_height=44, data_row_min_height=56, data_row_max_height=56,
-        column_spacing=24 if completo else 12, horizontal_margin=16 if completo else 8,
-        heading_text_style=ft.TextStyle(weight=ft.FontWeight.W_600, color=ft.Colors.ON_SURFACE_VARIANT),
-        columns=[ft.DataColumn(ft.Text('Cliente')),
-                 *([ft.DataColumn(ft.Text('Cidade'))] if completo else []),
-                 ft.DataColumn(ft.Text('Status')),
-                 *([ft.DataColumn(ft.Text('Total comprado'), numeric=True)] if completo else []),
-                 ft.DataColumn(ft.Text(''))])
+
+    def linha(cliente, cidade, status, total, acao, cabecalho=False):
+        """Uma linha da lista. As colunas usam proporções (expand) e larguras fixas
+        iguais no cabeçalho e nas linhas, então ficam alinhadas e ocupam a largura toda."""
+        return ft.Container(
+            padding=ft.Padding.symmetric(horizontal=16, vertical=8 if cabecalho else 10),
+            border=ft.Border.only(bottom=ft.BorderSide(1, ft.Colors.OUTLINE_VARIANT)),
+            content=ft.Row(spacing=16, vertical_alignment=ft.CrossAxisAlignment.CENTER, controls=[
+                ft.Container(cliente, expand=3),
+                *([ft.Container(cidade, expand=2)] if completo else []),
+                ft.Container(status, width=96),
+                *([ft.Container(total, width=130, alignment=ft.Alignment.CENTER_RIGHT)]
+                  if completo else []),
+                ft.Container(acao, width=40, alignment=ft.Alignment.CENTER),
+            ]))
+
+    def titulo_coluna(texto):
+        return ft.Text(texto, weight=ft.FontWeight.W_600, color=ft.Colors.ON_SURFACE_VARIANT)
+
+    cabecalho = linha(titulo_coluna('Cliente'), titulo_coluna('Cidade'), titulo_coluna('Status'),
+                      titulo_coluna('Total comprado'), None, cabecalho=True)
+    lista = ft.Column(spacing=0)
     vazio = ft.Container(
         visible=False, padding=40, alignment=ft.Alignment.CENTER,
         content=ft.Column(tight=True, horizontal_alignment=ft.CrossAxisAlignment.CENTER, controls=[
@@ -178,22 +192,26 @@ def pagina_clientes(painel):
         termo = (busca.value or '').strip().lower()
         filtrados = [c for c in dados.CLIENTES
                      if termo in f"{c['nome']} {c['email']} {c['cidade']}".lower()]
-        tabela.rows = [ft.DataRow(cells=[
-            ft.DataCell(ft.Row(spacing=12, controls=[
+        reticencias = dict(no_wrap=True, overflow=ft.TextOverflow.ELLIPSIS)
+        lista.controls = [linha(
+            ft.Row(spacing=12, controls=[
                 ft.CircleAvatar(content=ft.Text(c['nome'][0], weight=ft.FontWeight.BOLD),
-                                radius=16, bgcolor=ft.Colors.with_opacity(0.15, ft.Colors.PRIMARY), color=ft.Colors.PRIMARY),
-                ft.Column(spacing=0, alignment=ft.MainAxisAlignment.CENTER, controls=[
-                    ft.Text(c['nome'], weight=ft.FontWeight.W_500),
-                    ft.Text(c['email'], size=12, color=ft.Colors.ON_SURFACE_VARIANT)])])),
-            *([ft.DataCell(ft.Text(c['cidade']))] if completo else []),
-            ft.DataCell(etiqueta(c['status'], ft.Colors.GREEN if c['status'] == 'Ativo' else ft.Colors.GREY)),
-            *([ft.DataCell(ft.Text(dados.moeda(c['total'])))] if completo else []),
-            ft.DataCell(ft.IconButton(ft.Icons.DELETE_OUTLINE, tooltip='Remover',
-                                      icon_color=ft.Colors.ON_SURFACE_VARIANT,
-                                      on_click=lambda _, c=c: confirmar_remocao(c))),
-        ]) for c in filtrados]
+                                radius=16, bgcolor=ft.Colors.with_opacity(0.15, ft.Colors.PRIMARY),
+                                color=ft.Colors.PRIMARY),
+                ft.Column(spacing=0, expand=True, controls=[
+                    ft.Text(c['nome'], weight=ft.FontWeight.W_500, **reticencias),
+                    ft.Text(c['email'], size=12, color=ft.Colors.ON_SURFACE_VARIANT,
+                            **reticencias)])]),
+            ft.Text(c['cidade'], **reticencias),
+            ft.Row([etiqueta(c['status'],
+                             ft.Colors.GREEN if c['status'] == 'Ativo' else ft.Colors.GREY)]),
+            ft.Text(dados.moeda(c['total'])),
+            ft.IconButton(ft.Icons.DELETE_OUTLINE, tooltip='Remover',
+                          icon_color=ft.Colors.ON_SURFACE_VARIANT,
+                          on_click=lambda _, c=c: confirmar_remocao(c)),
+        ) for c in filtrados]
         vazio.visible = not filtrados
-        tabela.visible = bool(filtrados)
+        cabecalho.visible = bool(filtrados)
         contador.value = f'{len(filtrados)} de {len(dados.CLIENTES)} clientes'
         if redesenhar:
             painel.page_ref.update()
@@ -258,9 +276,10 @@ def pagina_clientes(painel):
             ft.FilledButton('Novo cliente' if completo else 'Novo', icon=ft.Icons.ADD, height=56,
                             on_click=novo_cliente),
         ]),
-        cartao(padding=8, expand=True, content=ft.Column(expand=True, spacing=0, controls=[
-            ft.Container(contador, padding=ft.Padding.only(left=16, top=8, bottom=4)),
-            ft.Column([tabela, vazio], scroll=ft.ScrollMode.AUTO, expand=True,
+        cartao(padding=12, expand=True, content=ft.Column(expand=True, spacing=0, controls=[
+            ft.Container(contador, padding=ft.Padding.only(left=16, top=6, bottom=6)),
+            cabecalho,
+            ft.Column([lista, vazio], scroll=ft.ScrollMode.AUTO, expand=True,
                       horizontal_alignment=ft.CrossAxisAlignment.STRETCH),
         ])),
     ])
@@ -273,12 +292,22 @@ def pagina_relatorios(painel):
     melhor = max(meses, key=lambda i: dados.VENDAS_MENSAIS[i])
 
     def resumo(rotulo, valor, icone):
-        return cartao(col={'xs': 12, 'md': 4}, content=ft.Row(spacing=14, controls=[
-            ft.Container(ft.Icon(icone, color=ft.Colors.PRIMARY), padding=10, border_radius=RAIO_CAMPO,
-                         bgcolor=ft.Colors.with_opacity(0.12, ft.Colors.PRIMARY)),
-            ft.Column(spacing=2, controls=[
-                ft.Text(rotulo, size=13, color=ft.Colors.ON_SURFACE_VARIANT),
-                ft.Text(valor, size=20, weight=ft.FontWeight.BOLD)])]))
+        icone_c = ft.Container(ft.Icon(icone, color=ft.Colors.PRIMARY), padding=10,
+                               border_radius=RAIO_CAMPO,
+                               bgcolor=ft.Colors.with_opacity(0.12, ft.Colors.PRIMARY))
+        textos = [ft.Text(rotulo, size=13, color=ft.Colors.ON_SURFACE_VARIANT,
+                          no_wrap=True, overflow=ft.TextOverflow.ELLIPSIS),
+                  ft.Text(valor, size=18 if painel.compacto else 20, weight=ft.FontWeight.BOLD,
+                          no_wrap=True, overflow=ft.TextOverflow.ELLIPSIS)]
+        # A grade responsiva decide pela largura da janela, sem descontar o menu;
+        # no compacto o cartão fica estreito, então o ícone vai para cima do texto
+        if painel.compacto:
+            conteudo = ft.Column(spacing=10, controls=[icone_c, ft.Column(spacing=2, controls=textos)])
+        else:
+            conteudo = ft.Row(spacing=14, controls=[
+                icone_c, ft.Column(spacing=2, expand=True, controls=textos)])
+        return cartao(col={'xs': 12, 'md': 4}, padding=20 if painel.compacto else 24,
+                      content=conteudo)
 
     grafico = fch.LineChart(
         expand=True, min_y=0, max_y=60000, min_x=0, max_x=11, interactive=True,
