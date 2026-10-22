@@ -2,7 +2,7 @@ import flet as ft
 
 import dados
 import marca
-from estilo import DEGRADE, campo
+from estilo import ANIMACAO_MS, DEGRADE, campo
 
 # Menor largura em que o cartão lateral e o formulário cabem lado a lado;
 # a janela não diminui além disso, então o cartão nunca some
@@ -24,7 +24,8 @@ class TelaAutenticacao(ft.Row):
         super().__init__(expand=True, spacing=0)
         self.ao_entrar = ao_entrar
         self.formulario = ft.AnimatedSwitcher(
-            content=self.form_login(), duration=250,
+            content=self.form_login(), duration=ANIMACAO_MS, reverse_duration=ANIMACAO_MS,
+            switch_in_curve=ft.AnimationCurve.EASE_OUT, switch_out_curve=ft.AnimationCurve.EASE_IN,
             transition=ft.AnimatedSwitcherTransition.FADE)
         # Cartão lateral flutuante de cantos arredondados
         self.lateral = ft.Container(

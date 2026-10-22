@@ -5,7 +5,7 @@ import flet as ft
 
 import marca
 from autenticacao import LARGURA_MINIMA, TelaAutenticacao
-from estilo import PRIMARIA, PRIMARIA_ESCURO, tema
+from estilo import FUNDO, PRIMARIA, PRIMARIA_ESCURO, tema
 from painel import Painel
 
 # Caminho baseado na localização do arquivo, para rodar de qualquer pasta
@@ -74,10 +74,15 @@ def main(page: ft.Page):
     page.padding = 0
     page.spacing = 0
     page.theme_mode = ft.ThemeMode.LIGHT
-    page.theme = tema(PRIMARIA)
+    page.theme = tema(PRIMARIA, FUNDO)
     page.dark_theme = tema(PRIMARIA_ESCURO)
 
+    def cor_fundo():
+        # FUNDO só no tema claro; no escuro fica o fundo padrão do tema
+        return ft.Colors.SURFACE if page.theme_mode == ft.ThemeMode.DARK else FUNDO
+
     area = ft.Container(expand=True)
+    moldura = None
     if page.web:
         page.add(ft.Container(height=12), area)
     else:
@@ -88,13 +93,13 @@ def main(page: ft.Page):
         page.window.width, page.window.height = LARGURA_MINIMA, ALTURA_MINIMA
 
         # Janela transparente + moldura arredondada = cantos mais redondos
-        # que os do Windows (que são fixos em ~8px)
+        # que os do Windows (que são fixos em ~8px); a moldura pinta o fundo
         page.window.bgcolor = ft.Colors.TRANSPARENT
         page.bgcolor = ft.Colors.TRANSPARENT
         page.window.frameless = True   # tira o contorno fino que o Windows desenha
         moldura = ft.Container(
             left=0, top=0, right=0, bottom=0,
-            bgcolor=ft.Colors.SURFACE, border_radius=RAIO_JANELA,
+            bgcolor=cor_fundo(), border_radius=RAIO_JANELA,
             clip_behavior=ft.ClipBehavior.ANTI_ALIAS,
             content=ft.Column([barra_titulo(page), area], spacing=0, expand=True))
 
@@ -117,6 +122,8 @@ def main(page: ft.Page):
 
     def definir_tema(escuro):
         page.theme_mode = ft.ThemeMode.DARK if escuro else ft.ThemeMode.LIGHT
+        if moldura:
+            moldura.bgcolor = cor_fundo()
 
     def entrar(usuario):
         mostrar(Painel(page, usuario, ao_sair=sair, definir_tema=definir_tema, largura=largura()))

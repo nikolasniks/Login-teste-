@@ -4,7 +4,7 @@ import flet_charts as fch
 import dados
 import marca
 from estilo import (ACENTO_1, ACENTO_2, ACENTO_3, CORES_GRAFICO, FUNDO_DICA, PRIMARIA,
-                    RAIO_CAMPO, RAIO_CARTAO as RAIO, campo)
+                    ANIMACAO_MS, RAIO_CAMPO, RAIO_CARTAO as RAIO, campo)
 
 LARGURA_MENU_ABERTO = 1100   # abaixo disso o menu lateral mostra só ícones
 LARGURA_COMPACTA = 900       # abaixo disso as páginas usam o layout compacto
@@ -394,7 +394,9 @@ class Painel(ft.Row):
         self.botao_tema = ft.IconButton(on_click=lambda _: self.definir_tema(
             self.page_ref.theme_mode != ft.ThemeMode.DARK))
         self.area = ft.AnimatedSwitcher(
-            content=ft.Container(), duration=200, expand=True,
+            content=ft.Container(), duration=ANIMACAO_MS, reverse_duration=ANIMACAO_MS,
+            switch_in_curve=ft.AnimationCurve.EASE_OUT, switch_out_curve=ft.AnimationCurve.EASE_IN,
+            expand=True,
             transition=ft.AnimatedSwitcherTransition.FADE)
 
         primeiro_nome = usuario['nome'].split()[0]
