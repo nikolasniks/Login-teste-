@@ -6,7 +6,7 @@ import flet as ft
 
 import marca
 from autenticacao import LARGURA_MINIMA, TelaAutenticacao
-from carregamento import TEMPO_CARREGAMENTO, TelaCarregamento
+from carregamento import TelaCarregamento
 from estilo import ANIMACAO_MS, FUNDO, PRIMARIA, PRIMARIA_ESCURO, tema
 from painel import Painel
 
@@ -123,7 +123,20 @@ def main(page: ft.Page):
         return page.width or 1280
 
     async def tamanho_minimo():
-        """Cada tela abre com a janela no tamanho mínimo, centralizada."""
+        """Cada tela abre com a janela no tamanho mínimo.
+
+        Se a janela já está no mínimo, não mexe nela (mexer a cada troca de tela
+        dava a impressão de fechar uma janela e abrir outra). Se está maior,
+        encolhe em torno do próprio centro, sem saltar para o meio da tela.
+        """
+        largura_atual = page.window.width or LARGURA_MINIMA
+        altura_atual = page.window.height or ALTURA_MINIMA
+        maximizada = page.window.maximized
+        if (not maximizada and round(largura_atual) == LARGURA_MINIMA
+                and round(altura_atual) == ALTURA_MINIMA):
+            return
+        esquerda, topo = page.window.left, page.window.top
+
         page.window.maximized = False
         # O Flet ignora "860" se o último tamanho que ele mesmo aplicou já era 860,
         # mesmo que o usuário tenha aumentado a janela com o mouse depois.
@@ -132,11 +145,14 @@ def main(page: ft.Page):
         page.update()
         await asyncio.sleep(0.05)
         page.window.width, page.window.height = LARGURA_MINIMA, ALTURA_MINIMA
-        page.update()
-        # Centralizar junto com o redimensionamento faz um desfazer o outro;
-        # espera o novo tamanho valer antes de centralizar
-        await asyncio.sleep(0.1)
-        await page.window.center()
+        if maximizada or esquerda is None or topo is None:
+            page.update()
+            await asyncio.sleep(0.1)   # espera o tamanho valer antes de centralizar
+            await page.window.center()
+        else:
+            page.window.left = esquerda + (largura_atual - LARGURA_MINIMA) / 2
+            page.window.top = topo + (altura_atual - ALTURA_MINIMA) / 2
+            page.update()
 
     def mostrar(tela):
         area.content = tela
@@ -154,7 +170,7 @@ def main(page: ft.Page):
         mostrar(TelaCarregamento(usuario))
 
         async def abrir_painel():
-            await asyncio.sleep(TEMPO_CARREGAMENTO)
+            await asyncio.sleep(marca.TEMPO_CARREGAMENTO)
             mostrar(Painel(page, usuario, ao_sair=sair, definir_tema=definir_tema,
                            largura=largura()))
 

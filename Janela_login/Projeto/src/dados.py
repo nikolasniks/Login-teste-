@@ -12,6 +12,14 @@ USUARIOS = {
     'demo@exemplo.com': {'nome': 'Usuário Demo', 'senha': '123456'},
 }
 
+# Usuários de teste pessoais ficam em usuarios_teste.py, que o Git ignora
+# (nunca vão para o repositório). Formato: USUARIOS = {'email': {'nome': ..., 'senha': ...}}
+try:
+    from usuarios_teste import USUARIOS as _USUARIOS_TESTE
+    USUARIOS.update(_USUARIOS_TESTE)
+except ImportError:
+    pass
+
 MESES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
          'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
 VENDAS_MENSAIS = [28400, 31200, 29800, 35600, 38100, 36900,

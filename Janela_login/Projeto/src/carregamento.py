@@ -2,11 +2,13 @@ import flet as ft
 
 import marca
 
-TEMPO_CARREGAMENTO = 1.0   # segundos na tela de carregamento entre o login e o painel
-
 
 class TelaCarregamento(ft.Container):
-    """Tela exibida entre o login e o painel: marca, barra de progresso e saudação."""
+    """Tela exibida entre o login e o painel: destaque da marca, progresso e saudação.
+
+    O destaque e o tempo na tela vêm do marca.py (animacao_carregamento e
+    TEMPO_CARREGAMENTO).
+    """
 
     def __init__(self, usuario):
         partes = usuario['nome'].split()
@@ -16,7 +18,7 @@ class TelaCarregamento(ft.Container):
             content=ft.Column(
                 tight=True, spacing=14, horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 controls=[
-                    marca.icone_menu(tamanho=52),
+                    marca.animacao_carregamento(),
                     ft.Text(marca.NOME_APP, size=24, weight=ft.FontWeight.BOLD),
                     ft.Container(height=6),
                     # Sem value: barra indeterminada (animação contínua)

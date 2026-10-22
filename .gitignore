@@ -1,2 +1,4 @@
 .venv/
 __pycache__/
+# usuários de teste pessoais (e-mail e senha) — só na máquina local
+usuarios_teste.py
