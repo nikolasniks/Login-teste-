@@ -9,6 +9,7 @@ from estilo import PRIMARIA, TEXTO_CARTAO
 
 NOME_APP = 'Meu Painel'
 FOTO_NO_FORMULARIO = None   # imagem acima de "Bem-vindo de volta"; None para não mostrar
+TEMPO_CARREGAMENTO = 1.0    # segundos na tela de carregamento entre o login e o painel
 
 
 def conteudo_cartao():
@@ -23,10 +24,16 @@ def conteudo_cartao():
     ]
 
 
-def icone_menu():
-    """Ícone no topo do menu lateral (aparece também com o menu fechado)."""
-    return ft.Container(ft.Icon(ft.Icons.BOLT, color=ft.Colors.WHITE, size=20),
-                        bgcolor=PRIMARIA, border_radius=12, padding=8)
+def icone_menu(tamanho=20):
+    """Ícone da marca: topo do menu lateral e, maior, a tela de carregamento."""
+    return ft.Container(ft.Icon(ft.Icons.BOLT, color=ft.Colors.WHITE, size=tamanho),
+                        bgcolor=PRIMARIA, border_radius=round(tamanho * 0.6),
+                        padding=round(tamanho * 0.4))
+
+
+def animacao_carregamento():
+    """Destaque da tela de carregamento: aqui, o ícone parado (troque por uma animação)."""
+    return icone_menu(tamanho=48)
 
 
 def nome_menu():
