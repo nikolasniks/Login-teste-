@@ -1,14 +1,27 @@
 # Login-teste-
 simple code, with a login and registration screen, with a simple database, just to see how the project works
 
-Aplicativo em Python com tela de login e um painel (dashboard), feito com [Flet](https://flet.dev).
+Aplicativo desktop em Python com tela de login e um painel (dashboard), feito com [Flet](https://flet.dev).
+
+## Como abrir (Windows)
+
+1. Baixe o projeto: botão verde **Code** → **Download ZIP**, e extraia a pasta
+   (ou `git clone https://github.com/nikolasniks/Login-teste-.git`).
+2. Dê dois cliques em **`Abrir app.bat`**.
+
+Na primeira vez ele prepara o ambiente sozinho (1 ou 2 minutos, precisa de internet);
+depois abre direto. Precisa do [Python 3.13](https://www.python.org/downloads/) ou do
+[uv](https://docs.astral.sh/uv/) instalado.
+
+Para entrar: **`demo@exemplo.com`** / **`123456`** (ou crie uma conta em "Cadastre-se").
 
 ## Funcionalidades
 
 **Login**
-- Login, cadastro e recuperação de senha em uma única janela
+- Login, cadastro e recuperação de senha em uma única janela, com "Voltar ao login"
 - Validação dos campos (e-mail válido, senha mínima, confirmação de senha, e-mail já cadastrado)
 - Mostrar/ocultar senha e envio com a tecla Enter
+- Tela de carregamento entre o login e o painel
 
 **Painel**
 - Menu lateral com Início, Clientes, Relatórios e Configurações
@@ -17,7 +30,11 @@ Aplicativo em Python com tela de login e um painel (dashboard), feito com [Flet]
 - Relatórios: receita x meta ao longo do ano
 - Configurações: perfil, modo claro/escuro e sair
 
-## Como rodar
+**Janela**
+- Cantos arredondados, barra de título própria e troca de telas com fade
+- Abre no tamanho mínimo (860×560) e se adapta quando aumentada
+
+## Rodar pelo terminal
 
 ```bash
 cd Janela_login/Projeto
@@ -28,21 +45,24 @@ python src/main.py
 Para abrir no navegador em vez de janela: `python src/main.py --web 8550`.
 
 Sem banco de dados por enquanto: usuários e clientes ficam em memória (`src/dados.py`) e somem ao fechar o app.
-Para testar, entre com `demo@exemplo.com` / `123456`.
+Usuários de teste pessoais podem ir em `src/usuarios_teste.py` (ignorado pelo Git), no formato
+`USUARIOS = {'email': {'nome': 'Nome', 'senha': 'senha'}}`.
 
 ## Estrutura
 
 ```
+Abrir app.bat            # abre o app com dois cliques
 Janela_login/Projeto/
 ├── assets/
 │   ├── icone.ico        # ícone da janela e da barra de tarefas
 │   └── perfil.png       # imagem do cartão lateral do login
 └── src/
-    ├── main.py          # ponto de entrada: janela, tema e troca login/painel
+    ├── main.py          # ponto de entrada: janela, tema e troca de telas
     ├── autenticacao.py  # telas de login, cadastro e recuperação de senha
+    ├── carregamento.py  # tela de carregamento entre o login e o painel
     ├── painel.py        # painel com menu lateral e páginas
     ├── estilo.py        # paleta, tema, raio dos cantos e campo de texto padrão
-    ├── marca.py         # nome do app, cartão do login e marca do menu
+    ├── marca.py         # nome do app, cartão do login, ícone e destaque do carregamento
     └── dados.py         # dados em memória (troque aqui quando houver banco)
 ```
 
@@ -50,8 +70,9 @@ Janela_login/Projeto/
 
 Para usar o app com outra marca, só dois arquivos mudam:
 
-- `src/estilo.py`: as cores (primária, degradê do cartão, acentos e gráficos)
-- `src/marca.py`: nome do app, conteúdo do cartão do login e ícone do menu
+- `src/estilo.py`: as cores (primária, fundo, degradê do cartão, acentos e gráficos)
+- `src/marca.py`: nome do app, conteúdo do cartão do login, ícone do menu e o destaque
+  da tela de carregamento (pode ser uma animação própria)
 
 Botões, campos e diálogos seguem o tema definido em `estilo.tema()`, então todas as telas mantêm o mesmo padrão.
 
@@ -65,4 +86,5 @@ A janela tem largura mínima de 860px, para o cartão lateral do login nunca sum
 | 900–1100px | menu só com ícones |
 | 860–900px | menu só com ícones, layout compacto |
 
-No layout compacto, a tabela de clientes esconde Cidade e Total e o gráfico mostra os meses de dois em dois.
+No layout compacto, a lista de clientes esconde Cidade e Total, os resumos dos relatórios
+mostram o ícone acima do texto e o gráfico mostra os meses de dois em dois.
