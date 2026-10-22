@@ -1,3 +1,4 @@
+import asyncio
 import sys
 from pathlib import Path
 
@@ -5,7 +6,8 @@ import flet as ft
 
 import marca
 from autenticacao import LARGURA_MINIMA, TelaAutenticacao
-from estilo import FUNDO, PRIMARIA, PRIMARIA_ESCURO, tema
+from carregamento import TEMPO_CARREGAMENTO, TelaCarregamento
+from estilo import ANIMACAO_MS, FUNDO, PRIMARIA, PRIMARIA_ESCURO, tema
 from painel import Painel
 
 # Caminho baseado na localização do arquivo, para rodar de qualquer pasta
@@ -81,7 +83,11 @@ def main(page: ft.Page):
         # FUNDO só no tema claro; no escuro fica o fundo padrão do tema
         return ft.Colors.SURFACE if page.theme_mode == ft.ThemeMode.DARK else FUNDO
 
-    area = ft.Container(expand=True)
+    # Área das telas (login, carregamento, painel), com fade na troca
+    area = ft.AnimatedSwitcher(
+        content=ft.Container(), expand=True,
+        duration=ANIMACAO_MS, reverse_duration=ANIMACAO_MS,
+        switch_in_curve=ft.AnimationCurve.EASE_OUT, switch_out_curve=ft.AnimationCurve.EASE_IN)
     moldura = None
     if page.web:
         page.add(ft.Container(height=12), area)
@@ -116,9 +122,27 @@ def main(page: ft.Page):
     def largura():
         return page.width or 1280
 
+    async def tamanho_minimo():
+        """Cada tela abre com a janela no tamanho mínimo, centralizada."""
+        page.window.maximized = False
+        # O Flet ignora "860" se o último tamanho que ele mesmo aplicou já era 860,
+        # mesmo que o usuário tenha aumentado a janela com o mouse depois.
+        # Passar por 861 antes força o redimensionamento de verdade.
+        page.window.width, page.window.height = LARGURA_MINIMA + 1, ALTURA_MINIMA + 1
+        page.update()
+        await asyncio.sleep(0.05)
+        page.window.width, page.window.height = LARGURA_MINIMA, ALTURA_MINIMA
+        page.update()
+        # Centralizar junto com o redimensionamento faz um desfazer o outro;
+        # espera o novo tamanho valer antes de centralizar
+        await asyncio.sleep(0.1)
+        await page.window.center()
+
     def mostrar(tela):
         area.content = tela
         page.update()
+        if not page.web:
+            page.run_task(tamanho_minimo)
 
     def definir_tema(escuro):
         page.theme_mode = ft.ThemeMode.DARK if escuro else ft.ThemeMode.LIGHT
@@ -126,7 +150,15 @@ def main(page: ft.Page):
             moldura.bgcolor = cor_fundo()
 
     def entrar(usuario):
-        mostrar(Painel(page, usuario, ao_sair=sair, definir_tema=definir_tema, largura=largura()))
+        # Login -> tela de carregamento -> painel
+        mostrar(TelaCarregamento(usuario))
+
+        async def abrir_painel():
+            await asyncio.sleep(TEMPO_CARREGAMENTO)
+            mostrar(Painel(page, usuario, ao_sair=sair, definir_tema=definir_tema,
+                           largura=largura()))
+
+        page.run_task(abrir_painel)
 
     def sair():
         mostrar(TelaAutenticacao(ao_entrar=entrar))

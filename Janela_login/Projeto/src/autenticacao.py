@@ -55,6 +55,11 @@ class TelaAutenticacao(ft.Row):
         return ft.Text(texto, size=13, visible=bool(texto),
                        color=ft.Colors.GREEN if sucesso else ft.Colors.ERROR)
 
+    def botao_voltar(self):
+        """Volta ao login; fica no topo do cadastro e da recuperação de senha."""
+        return ft.Row([ft.TextButton('Voltar ao login', icon=ft.Icons.ARROW_BACK,
+                                     on_click=lambda _: self.trocar(self.form_login()))])
+
     @staticmethod
     def cabecalho(titulo, subtitulo):
         return [
@@ -119,7 +124,7 @@ class TelaAutenticacao(ft.Row):
                      capitalization=ft.TextCapitalization.WORDS)
         email = campo('E-mail', ft.Icons.MAIL_OUTLINE, keyboard_type=ft.KeyboardType.EMAIL)
         senha = campo('Senha', ft.Icons.LOCK_OUTLINE, senha=True,
-                      helper=f'Mínimo de {dados.SENHA_MINIMA} caracteres')
+                      hint_text=f'Mínimo de {dados.SENHA_MINIMA} caracteres')
         confirmar = campo('Confirmar senha', ft.Icons.LOCK_OUTLINE, senha=True)
 
         def concluir(_):
@@ -145,16 +150,15 @@ class TelaAutenticacao(ft.Row):
         for c in (nome, email, senha, confirmar):
             c.on_submit = concluir
         return ft.Column(
-            key='cadastro', tight=True, spacing=14,
+            # Espaçamento menor para o cadastro caber inteiro na janela mínima
+            key='cadastro', tight=True, spacing=10,
             horizontal_alignment=ft.CrossAxisAlignment.STRETCH,
             controls=[
+                self.botao_voltar(),
                 *self.cabecalho('Criar conta', 'Leva menos de um minuto.'),
                 nome, email, senha, confirmar,
                 ft.Container(height=4),
                 botao_principal('Concluir cadastro', concluir),
-                ft.Row([ft.Text('Já tem uma conta?', color=ft.Colors.ON_SURFACE_VARIANT),
-                        link('Entrar', lambda _: self.trocar(self.form_login()))],
-                       alignment=ft.MainAxisAlignment.CENTER, spacing=0),
             ])
 
     # ---------- Recuperar senha ----------
@@ -183,10 +187,9 @@ class TelaAutenticacao(ft.Row):
             key='recuperar', tight=True, spacing=14,
             horizontal_alignment=ft.CrossAxisAlignment.STRETCH,
             controls=[
+                self.botao_voltar(),
                 *self.cabecalho('Recuperar senha',
                                 'Digite o e-mail da sua conta e enviaremos as instruções.'),
                 email, status,
                 botao_principal('Enviar instruções', enviar),
-                ft.Row([link('← Voltar para o login', lambda _: self.trocar(self.form_login()))],
-                       alignment=ft.MainAxisAlignment.CENTER),
             ])
