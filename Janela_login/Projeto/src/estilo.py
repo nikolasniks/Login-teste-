@@ -60,7 +60,12 @@ def borda_campo(preenchido=True):
 
 
 def campo(rotulo, icone, senha=False, **kwargs):
-    """Campo de texto no padrão da tela de login: preenchido, com ícone à esquerda."""
+    """Campo de texto no padrão da tela de login: preenchido, com ícone à esquerda.
+
+    O preenchimento usa o tom claro dos cartões, um pouco mais claro que o FUNDO,
+    para o campo se destacar de leve sem contorno.
+    """
     return ft.TextField(
         label=rotulo, prefix_icon=icone, password=senha, can_reveal_password=senha,
-        filled=True, border=borda_campo(), **kwargs)
+        filled=True, fill_color=ft.Colors.SURFACE_CONTAINER_LOW, border=borda_campo(),
+        **kwargs)
