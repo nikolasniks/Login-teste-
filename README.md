@@ -13,7 +13,12 @@ Na primeira vez ele prepara o ambiente sozinho (1 ou 2 minutos, precisa de inter
 depois abre direto. Precisa do [Python 3.13](https://www.python.org/downloads/) ou do
 [uv](https://docs.astral.sh/uv/) instalado.
 
-Para entrar: **`demo@exemplo.com`** / **`123456`** (ou crie uma conta em "Cadastre-se").
+Para entrar, use uma das contas de teste (ou crie uma em "Cadastre-se"):
+
+| E-mail | Senha |
+|---|---|
+| `teste.meupainel@gmail.com` | `teste123` |
+| `demo@exemplo.com` | `123456` |
 
 ## Funcionalidades
 

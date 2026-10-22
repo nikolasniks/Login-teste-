@@ -10,6 +10,8 @@ SENHA_MINIMA = 6
 
 USUARIOS = {
     'demo@exemplo.com': {'nome': 'Usuário Demo', 'senha': '123456'},
+    # Conta de teste pública (fictícia, só para entrar no app; nenhum e-mail é enviado)
+    'teste.meupainel@gmail.com': {'nome': 'Usuário Teste', 'senha': 'teste123'},
 }
 
 # Usuários de teste pessoais ficam em usuarios_teste.py, que o Git ignora
